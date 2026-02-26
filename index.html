@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CSCE 412 Project 3 Design</title>
+  <style>
+    .class-box { border: 1px solid black; padding: 10px; margin: 10px; width: 200px; float: left; }
+    .arrow { font-size: 20pt; }
+  </style>
+</head>
+<body>
+  <h1>CSCE 412 Project 3 – Load Balancer Simulation</h1>
+  <img src="your-logo.jpg" alt="Project Logo" style="width:200px;">  <!-- Your branding logo -->
+
+  <h2>UML Class Diagram</h2>
+  <div class="class-box">
+    <b>Request (struct)</b><br>
+    - string ip_in<br>
+    - string ip_out<br>
+    - int time<br>
+    - char job_type
+  </div>
+
+  <div style="clear: both;"></div>
+
+  <div class="class-box">
+    <b>WebServer</b><br>
+    - Request* current_request<br>
+    - int remaining_time<br>
+    + process() : void<br>
+    + is_idle() : bool
+  </div>
+  <span class="arrow">← has 1 →</span>  <!-- Arrow showing relationship -->
+
+  <div class="class-box">
+    <b>LoadBalancer</b><br>
+    - queue<Request> request_queue<br>
+    - vector<WebServer*> servers<br>
+    - int current_time<br>
+    - map<string, bool> blocked_ips<br>
+    + add_request(Request) : void<br>
+    + tick() : void<br>
+    + adjust_servers() : void<br>
+    + block_ip(string) : void
+  </div>
+
+  <h2>Flow Diagram (Workflow)</h2>
+  <div style="border:1px solid; padding:10px; width:400px;">
+    Start → Load Config → Create LoadBalancer → Generate Initial Queue → Loop (for each clock cycle): Add Random Requests → Process Servers → Assign Idle Servers → Check Queue Size (Add/Remove Servers if Needed) → Log → End Loop → Output Summary → End
+  </div>
+
+  <h2>Text Description</h2>
+  <p>The UML Class Diagram shows the key classes: Request struct holds request data, WebServer processes requests, LoadBalancer manages queue and servers. The workflow flow diagram outlines the simulation loop, ensuring dynamic server adjustment and request handling.</p>
+</body>
+</html>
