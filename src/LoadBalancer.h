@@ -17,6 +17,8 @@ class LoadBalancer{
         vector<WebServer> web_servers;
         map<string, bool> blocked_ips;
         int time;
+        int remove_delay_counter = 0;
+        int add_delay_counter = 0;
     
     public:
         LoadBalancer(int num_servers, int server_capacity);

@@ -11,7 +11,7 @@ class WebServer{
         WebServer();
         ~WebServer();
 
-        void assign_request(Request* req);
+        void assign_request(const Request& req);
         void process_request();
         bool is_busy() const;
 };

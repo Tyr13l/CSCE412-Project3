@@ -3,6 +3,7 @@
 #include "Request.h"
 #include <iostream>
 #include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ void LoadBalancer::add_random_request(){
     string ip_in = "168.0." + to_string(rand() % 256) + "." + to_string(rand() % 256);
     string ip_out = "208.0." + to_string(rand() % 256) + "." + to_string(rand() % 256);
 
-    int time = rand() % 10 + 1;
+    int time = rand() % 20 + 5;
 
     if (rand() % 2 == 0){
         add_request({ip_in, ip_out, time, 'P'});
@@ -40,8 +41,11 @@ void LoadBalancer::add_random_request(){
 }
 
 void LoadBalancer::assign_requests(){
+    bool any_assigned = false;
+
     while(!request_queue.empty()){
-        Request& req = request_queue.front();
+        Request req = request_queue.front();
+        request_queue.pop();
 
         //Check if request is blocked
         if(is_blocked(req.ip_in)){
@@ -54,10 +58,10 @@ void LoadBalancer::assign_requests(){
         bool assigned = false;
         for(WebServer& server : web_servers){
             if(!server.is_busy()){
-                server.assign_request(&req);
+                server.assign_request(req);
                 cout << "Assigned request from " << req.ip_in << " to " << req.ip_out << " with job type " << req.job_type << " and time " << req.time << "." << endl;
-                request_queue.pop();
                 assigned = true;
+                any_assigned = true;
                 break;
             }
         }
@@ -66,6 +70,10 @@ void LoadBalancer::assign_requests(){
         if (!assigned){
             cout << "No available servers for request from " << req.ip_in << endl;
         }
+    }
+
+    if(!any_assigned && !request_queue.empty()){
+        cout << "All servers are busy. " << request_queue.size() << " requests remain in queue" << endl;
     }
 }
 
@@ -78,13 +86,22 @@ void LoadBalancer::adjust_servers(){
     size_t max_cap = current_servers * 80;
     size_t min_cap = current_servers * 50;
 
-    if (queue_size < min_cap && current_servers > 1){
-        delete &web_servers.back();
+    if (queue_size < min_cap && current_servers > 1 && remove_delay_counter <= 0){
         web_servers.pop_back();
+        remove_delay_counter = 10;
         cout << "Removed a server. Total servers: " << web_servers.size() << endl;
     } else if (queue_size > max_cap){
         web_servers.emplace_back();
+        add_delay_counter = 10;
         cout << "Added a server. Total servers: " << web_servers.size() << endl;
+    }
+
+    if(remove_delay_counter > 0){
+        remove_delay_counter--;
+    }
+
+    if(add_delay_counter > 0){
+        add_delay_counter--;
     }
 }
 
@@ -108,7 +125,7 @@ void LoadBalancer::advance_time(){
     //Assign requests to idle servers
     assign_requests();
 
-    if(rand() % 10 == 0){
+    if(rand() % 5 == 0){
         add_random_request();
     }
 
@@ -120,6 +137,10 @@ void LoadBalancer::advance_time(){
         adjust_servers();
         adjust_counter = 0;
     }
+
+    ofstream log("simulation.log", ios::app);
+    log << "Time: " << time << ", Queue size: " << request_queue.size() << ", Server count: " << web_servers.size() << endl;
+    log.close();
 
 }
 
