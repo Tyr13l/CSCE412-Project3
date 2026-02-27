@@ -20,9 +20,22 @@ class LoadBalancer{
     
     public:
         LoadBalancer(int num_servers, int server_capacity);
+        //Request management functions
         void add_request(Request req);
+        void add_random_request();
+        void assign_requests();
+
+        //Server function
+        void adjust_servers();
+
+        //IP blocking functions
         void block_ip(const string& ip);
         bool is_blocked(const string& ip);
+
+        //Time function
+        void advance_time();
+
+        //Getter functions
         size_t get_queue_size() const;
         size_t get_server_count() const;
 
