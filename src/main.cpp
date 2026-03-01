@@ -7,6 +7,27 @@
 
 using namespace std;
 
+/**
+ * @file main.cpp
+ * @brief Driver program for the CSCE 412 Load Balancer simulation.
+ *
+ * This is the entry point of the application. It:
+ * - Initializes random seed
+ * - Reads configuration from config.txt (or uses defaults)
+ * - Creates a LoadBalancer instance with configured parameters
+ * - Blocks a small IP range for testing
+ * - Populates the initial queue with random requests
+ * - Runs the simulation for the specified number of cycles
+ * - Prints periodic status and final state
+ *
+ * Configuration parameters are read from config.txt if present.
+ * All simulation logic is delegated to the LoadBalancer class.
+ */
+
+ /**
+ * @brief Main entry point of the load balancer simulation.
+ * @return 0 on successful execution
+ */
 int main(){
 
     srand(time(nullptr));
