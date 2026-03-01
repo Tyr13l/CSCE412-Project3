@@ -59,25 +59,17 @@ int main(){
         cout << "Warning: config.txt not found - using defaults" << endl;
     }
 
-    //LoadBalancer with a capacity of 100 //UNUSED -- FIX
     LoadBalancer test(num_servers, min_per, max_per, delay, rate, pmin, pmax);
 
     cout << "Loaded config: " << num_servers << " servers, " << run_time << " cycles" << endl;
 
-    //Block an IP range
+    //Block an IP range (very small % of random requests are blocked)
     test.block_ip("10.0");
-
-    // cout << "Initial state:" << endl;
-    // cout << "Queue size: " << test.get_queue_size() << endl;
-    // cout << "Server count: " << test.get_server_count() << endl;
     
     //Fill queue with random requests
     for(int i = 0; i < initial_queue; i++){
         test.add_random_request();
     }
-
-    // cout << "After adding 500 random requests:" << endl;
-    // cout << "Queue size: " << test.get_queue_size() << endl;
 
     //Advance time to process requests (1000 cycles)
     for(int i = 0; i < run_time; i++){
@@ -91,7 +83,6 @@ int main(){
     cout << "\nFinal state after " << run_time << " cycles:" << endl;
     cout << "Queue size: " << test.get_queue_size() << endl;
     cout << "Server count: " << test.get_server_count() << endl;
-    //cout << "Requests processed: " << 100 - test.get_queue_size() << endl;
 
     return 0;
 }
