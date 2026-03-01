@@ -36,6 +36,7 @@ class LoadBalancer{
         int processing_time_max;                        ///< Maximum processing time for new random requests
         int remove_delay_counter = 0;                   ///< Countdown timer before next server removal is allowed
         int add_delay_counter = 0;                      ///< Countdown timer before next server addition is allowed
+        int total_blocked = 0;                          ///< Keep track of the number of times IPs are blocked
     
     public:
         /**
@@ -127,6 +128,12 @@ class LoadBalancer{
          * @return Current server count
          */
         size_t get_server_count() const;
+
+        /**
+         * @brief Returns the total amount of times IPs are blocked.
+         * @return Blocked IPs count
+         */
+        int get_total_blocked_IP() const;
 
 };
 

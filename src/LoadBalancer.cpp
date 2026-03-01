@@ -38,8 +38,15 @@ LoadBalancer::LoadBalancer(int num_servers, int min_per_server, int max_per_serv
  */
 void LoadBalancer::add_request(Request req){
     if(is_blocked(req.ip_in)){
+        total_blocked++;
+
         //Blocked requests are red
         cout << "\033[31mRequest from " << req.ip_in << " is blocked.\033[0m" << endl;
+        
+        //Log when blocking
+        ofstream log("simulation.log", ios::app);
+        log << "Blocked request from " << req.ip_in << endl;
+        log.close();
         return;
     }
 
@@ -66,6 +73,11 @@ void LoadBalancer::add_random_request(){
     } else {
         add_request({ip_in, ip_out, time, 'S'});
     }
+
+    //Log random addition
+    ofstream log("simulation.log", ios::app);
+    log << "Random request added (IP in: " << ip_in << ", time: " << time << ")" << endl;
+    log.close();
 }
 
 /**
@@ -84,6 +96,8 @@ void LoadBalancer::assign_requests(){
 
         //Check if request is blocked
         if(is_blocked(req.ip_in)){
+            total_blocked++;
+            
             //Blocked requests are red
             cout << "\033[31mRequest from " << req.ip_in << " is blocked.\033[0m" << endl;
             request_queue.pop();
@@ -99,6 +113,11 @@ void LoadBalancer::assign_requests(){
                 cout << "\033[34mAssigned request from " << req.ip_in << " to " << req.ip_out << " with job type " << req.job_type << " and time " << req.time << ".\033[0m" << endl;
                 assigned = true;
                 any_assigned = true;
+
+                //Log assignments
+                ofstream log("simulation.log", ios::app);
+                log << "Assigned request from " << req.ip_in << " (type: " << req.job_type << ", time: " << req.time << ")" << endl;
+                log.close();
                 break;
             }
         }
@@ -142,6 +161,11 @@ void LoadBalancer::adjust_servers(){
         //Added servers are yellow
         cout << "\033[33mAdded a server. Total servers: " << web_servers.size() << "\033[0m" << endl;
 
+        //Log addition
+        ofstream log("simulation.log", ios::app);
+        log << "Added a server (queue: " << queue_size << " > " << max_cap << "). Total: " << web_servers.size() << endl;
+        log.close();
+
         current_servers++;
         max_cap = current_servers * max_queue_per_server;
         queue_size = request_queue.size();
@@ -154,6 +178,11 @@ void LoadBalancer::adjust_servers(){
         remove_delay_counter = delay_cycles;
         //Removed servers are yellow
         cout << "\033[33mRemoved a server. Total servers: " << web_servers.size() << "\033[0m" << endl;
+        
+        //Log removal
+        ofstream log("simulation.log", ios::app);
+        log << "Removed a server (queue: " << queue_size << " < " << min_cap << "). Total: " << web_servers.size() << endl;
+        log.close();
     }
 
     if(remove_delay_counter > 0){
@@ -225,7 +254,7 @@ void LoadBalancer::advance_time(){
 
 
     ofstream log("simulation.log", ios::app);
-    log << "Time: " << time << ", Queue size: " << request_queue.size() << ", Server count: " << web_servers.size() << endl;
+    log << "\nTime: " << time << ", Queue size: " << request_queue.size() << ", Server count: " << web_servers.size() << endl;
     log.close();
 
 }
@@ -244,4 +273,13 @@ size_t LoadBalancer::get_queue_size() const{
  */
 size_t LoadBalancer::get_server_count() const{
     return web_servers.size();
+}
+
+
+/**
+ * @brief Returns the total amount of times IPs are blocked.
+ * @return Blocked IPs count
+ */
+int LoadBalancer::get_total_blocked_IP() const{
+    return total_blocked;
 }

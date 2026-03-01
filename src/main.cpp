@@ -84,6 +84,14 @@ int main(){
 
     cout << "Loaded config: " << num_servers << " servers, " << run_time << " cycles" << endl;
 
+    ofstream log_start("simulation.log", ios::app);
+    log_start << "\n=== Starting State ===" << endl;
+    log_start << "Starting queue size: " << initial_queue << endl;
+    log_start << "Task time range: " << pmin << " to " << pmax << " cycles" << endl;
+    log_start << "Initial server count: " << num_servers << endl;
+    log_start << "More information will be logged at the end of the simulation\n" << endl;
+    log_start.close();
+
     //Block an IP range (very small % of random requests are blocked)
     test.block_ip("10.0");
     
@@ -104,6 +112,17 @@ int main(){
     cout << "\nFinal state after " << run_time << " cycles:" << endl;
     cout << "Queue size: " << test.get_queue_size() << endl;
     cout << "Server count: " << test.get_server_count() << endl;
+
+    ofstream log_end("simulation.log", ios::app);
+    log_end << "\n=== Simulation Summary ===" << endl;
+    log_end << "Starting queue size: " << initial_queue << endl;
+    log_end << "Ending queue size: " << test.get_queue_size() << endl;
+    log_end << "Task time range: " << pmin << " to " << pmax << " cycles" << endl;
+    log_end << "Final server count: " << test.get_server_count() << endl;
+    log_end << "Random request probability: " << rate << endl;
+    log_end << "Scaling delay cycles: " << delay << endl;
+    log_end << "Total blocked IPs: " << test.get_total_blocked_IP() << endl;
+    log_end.close();
 
     return 0;
 }
