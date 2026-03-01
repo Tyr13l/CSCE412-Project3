@@ -16,8 +16,8 @@ int main(){
     int initial_queue = 1000;
     int min_per = 50;
     int max_per = 80;
-    int delay = 10;
-    double rate = 0.2;
+    int delay = 5;
+    double rate = 0.25;
     int pmin = 5;
     int pmax = 30;
 
@@ -65,7 +65,7 @@ int main(){
     cout << "Loaded config: " << num_servers << " servers, " << run_time << " cycles" << endl;
 
     //Block an IP range
-    test.block_ip("192.168");
+    test.block_ip("10.0");
 
     // cout << "Initial state:" << endl;
     // cout << "Queue size: " << test.get_queue_size() << endl;
