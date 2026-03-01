@@ -162,7 +162,15 @@ void LoadBalancer::advance_time(){
         add_random_request();
     }
 
-    adjust_servers();
+    //Check if servers need to be adjusted every 5 cycles
+    static int adjust_counter = 0;
+    adjust_counter++;
+
+    if(adjust_counter >= 5){
+        adjust_servers();
+        adjust_counter = 0;
+    }
+
 
     ofstream log("simulation.log", ios::app);
     log << "Time: " << time << ", Queue size: " << request_queue.size() << ", Server count: " << web_servers.size() << endl;
