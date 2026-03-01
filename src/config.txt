@@ -1,0 +1,9 @@
+num_servers=10
+run_time=10000
+initial_queue=1000
+min_queue_per_server=50
+max_queue_per_server=80
+delay_cycles=10
+request_rate=0.2
+processing_time_min=5
+processing_time_max=30

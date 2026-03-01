@@ -7,8 +7,14 @@
 
 using namespace std;
 
-LoadBalancer::LoadBalancer(int num_servers, int server_capacity){
+LoadBalancer::LoadBalancer(int num_servers, int min_per_server, int max_per_server, int delay_cyc, double request_prob, int proc_min, int proc_max){
     time = 0;
+    min_queue_per_server = min_per_server;
+    max_queue_per_server = max_per_server;
+    delay_cycles = delay_cyc;
+    request_probability = request_prob;
+    processing_time_min = proc_min;
+    processing_time_max = proc_max;
 
     //Create initial web servers
     for(int i = 0; i < num_servers; i++){
@@ -24,14 +30,14 @@ void LoadBalancer::add_request(Request req){
 
     request_queue.push(req);
 
-    cout << "Added request from " << req.ip_in << " to " << req.ip_out << " with job type " << req.job_type << " and time " << req.time << "." << endl;
+    //cout << "Added request from " << req.ip_in << " to " << req.ip_out << " with job type " << req.job_type << " and time " << req.time << "." << endl;
 }
 
 void LoadBalancer::add_random_request(){
-    string ip_in = "168.0." + to_string(rand() % 256) + "." + to_string(rand() % 256);
-    string ip_out = "208.0." + to_string(rand() % 256) + "." + to_string(rand() % 256);
+    string ip_in = "10." + to_string(rand() % 256) + "." + to_string(rand() % 256) + "." + to_string(rand() % 256);
+    string ip_out = "172.16." + to_string(rand() % 256) + "." + to_string(rand() % 256);
 
-    int time = rand() % 20 + 5;
+    int time = rand() % (processing_time_max - processing_time_min + 1) + processing_time_min;
 
     if (rand() % 2 == 0){
         add_request({ip_in, ip_out, time, 'P'});
@@ -42,6 +48,7 @@ void LoadBalancer::add_random_request(){
 
 void LoadBalancer::assign_requests(){
     bool any_assigned = false;
+    queue<Request> unassigned;
 
     while(!request_queue.empty()){
         Request req = request_queue.front();
@@ -68,8 +75,15 @@ void LoadBalancer::assign_requests(){
 
         //If no available servers, keep request in queue
         if (!assigned){
-            cout << "No available servers for request from " << req.ip_in << endl;
+            unassigned.push(req);
+            //cout << "No available servers for request from " << req.ip_in << endl;
         }
+    }
+
+    //Move unassigned requests back to the main queue
+    while(!unassigned.empty()){
+        request_queue.push(unassigned.front());
+        unassigned.pop();
     }
 
     if(!any_assigned && !request_queue.empty()){
@@ -83,16 +97,16 @@ void LoadBalancer::adjust_servers(){
     size_t queue_size = request_queue.size();
 
     //Queue between 50-80 per server
-    size_t max_cap = current_servers * 80;
-    size_t min_cap = current_servers * 50;
+    size_t max_cap = current_servers * max_queue_per_server;
+    size_t min_cap = current_servers * min_queue_per_server;
 
     if (queue_size < min_cap && current_servers > 1 && remove_delay_counter <= 0){
         web_servers.pop_back();
-        remove_delay_counter = 10;
+        remove_delay_counter = delay_cycles;
         cout << "Removed a server. Total servers: " << web_servers.size() << endl;
-    } else if (queue_size > max_cap){
+    } else if (queue_size > max_cap && add_delay_counter <= 0){
         web_servers.emplace_back();
-        add_delay_counter = 10;
+        add_delay_counter = delay_cycles;
         cout << "Added a server. Total servers: " << web_servers.size() << endl;
     }
 
@@ -105,13 +119,19 @@ void LoadBalancer::adjust_servers(){
     }
 }
 
-void LoadBalancer::block_ip(const string& ip){
-    blocked_ips[ip] = true;
-    cout << "Blocked IP: " << ip << endl;
+void LoadBalancer::block_ip(const string& ip_prefix){
+    blocked_ips.emplace_back(ip_prefix);
+    cout << "Blocked IP range: " << ip_prefix << endl;
 }
 
-bool LoadBalancer::is_blocked(const string& ip){
-    return blocked_ips.find(ip) != blocked_ips.end() && blocked_ips[ip];
+bool LoadBalancer::is_blocked(const string& ip) const{
+    for(const auto& blocked : blocked_ips){
+        //IP prefix matching
+        if(ip.substr(0, blocked.length()) == blocked){
+            return true;
+        }
+    }
+    return false;
 }
 
 void LoadBalancer::advance_time(){
@@ -125,7 +145,7 @@ void LoadBalancer::advance_time(){
     //Assign requests to idle servers
     assign_requests();
 
-    if(rand() % 5 == 0){
+    if((rand() / (double)RAND_MAX) < request_probability){
         add_random_request();
     }
 
